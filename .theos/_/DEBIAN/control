@@ -1,0 +1,10 @@
+Package: com.coletz.droidboard
+Name: DroidBoard
+Depends: mobilesubstrate (>= 0.9.5000), firmware (>= 3.0), com.rpetrich.rocketbootstrap (>= 1.0.3) | firmware (<< 7.0)
+Architecture: iphoneos-arm
+Description: A different app launcher
+Maintainer: Coletz
+Author: Coletz
+Section: Tweaks
+Version: 0.0.1-132+debug
+Installed-Size: 84
