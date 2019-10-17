@@ -1,6 +1,4 @@
-#TARGET = iphone:11.2:9.0
-#ARCH=arm64
-TARGET = iphone:11.2
+TARGET = iphone:11.2:12.4
 ARCHS = arm64
 
 INSTALL_TARGET_PROCESSES = SpringBoard

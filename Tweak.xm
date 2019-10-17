@@ -1,42 +1,62 @@
-#import <SpringBoard/SpringBoard.h>
 #import <AppList/AppList.h>
-#import <GraphicsServices/GraphicsServices.h>
+#import <GraphicsServices/GSEvent.h>
+
+// Interfaces - TO BE MOVED ON A SEPARATED FILE
+@interface UIApplication (Undocumented)
+- (void) launchApplicationWithIdentifier: (NSString*)identifier suspended: (BOOL)suspended; 
+@end
+
+@interface XIconCellView: UICollectionViewCell
+@property (strong, nonatomic) UIImageView* appIcon;
+@property (strong, nonatomic) UILabel* appName;
+-(XIconCellView*)initWithFrame:(CGRect)frame;
+@end
 
 // Statics
 static CGSize screen;
 static CGSize icon = CGSizeMake(ALApplicationIconSizeLarge, ALApplicationIconSizeLarge);
 static int statusBarHeight = 20;
 
-@interface UIApplication (Undocumented)
-- (void) launchApplicationWithIdentifier: (NSString*)identifier suspended: (BOOL)suspended; 
-@end
-
-
-@interface XIconCellView: UICollectionViewCell
-@property (strong, nonatomic) UIImageView* imageView;
--(XIconCellView*)initWithFrame:(CGRect)frame;
--(void)setImage:(UIImage*)img;
-@end
 
 @implementation XIconCellView
 -(XIconCellView*)initWithFrame:(CGRect)frame {
     self = [super initWithFrame:frame];
-    _imageView = [[UIImageView alloc] initWithFrame:CGRectMake(0, 0, icon.width, icon.height)];
-    _imageView.layer.cornerRadius = 12;//icon.width/2;
-    _imageView.layer.masksToBounds = YES;
-    _imageView.layer.shouldRasterize = YES; 
-    _imageView.layer.rasterizationScale = [UIScreen mainScreen].scale; 
-    _imageView.layer.borderColor = [[UIColor colorWithRed:0.35 green:0.35 blue:0.35 alpha:1] CGColor];
-    _imageView.layer.borderWidth = 1.0;
+    // - ICON
+    _appIcon = [[UIImageView alloc] initWithFrame:CGRectMake(0, 0, icon.width, icon.height)];
+    
+    int elevation = 2;
+    _appIcon.layer.masksToBounds = NO;
+    _appIcon.layer.shadowColor = [[UIColor blackColor] CGColor];
+    _appIcon.layer.shadowOffset = CGSizeMake(0, elevation);
+    _appIcon.layer.shadowOpacity = 0.24;
+    _appIcon.layer.shadowRadius = elevation;
 
+    _appIcon.layer.borderWidth = 1.0;
+    _appIcon.layer.borderColor = [[UIColor colorWithRed:0.5 green:0.5 blue:0.5 alpha:0.35] CGColor];
+    _appIcon.layer.cornerRadius = 12;
+    _appIcon.layer.shouldRasterize = YES; 
+    _appIcon.layer.rasterizationScale = [UIScreen mainScreen].scale; 
+    [self addSubview:_appIcon];
+    // --- constraints 
+    [_appIcon setTranslatesAutoresizingMaskIntoConstraints:NO];
+    [_appIcon.topAnchor constraintEqualToAnchor:self.topAnchor constant:0.0].active = YES;
+    [_appIcon.centerXAnchor constraintEqualToAnchor:self.centerXAnchor].active = YES;
 
+    // - NAME LABEl
+    _appName = [[UILabel alloc] initWithFrame:CGRectMake(0, 0, self.bounds.size.width, self.bounds.size.height)];
+    _appName.textColor = [UIColor blackColor];
+    _appName.textAlignment = NSTextAlignmentCenter;
+    _appName.font = [UIFont systemFontOfSize:12];
+    [self addSubview:_appName];
+    // --- constraints
+    [_appName setTranslatesAutoresizingMaskIntoConstraints:NO];
+    [_appName.leadingAnchor constraintEqualToAnchor:self.leadingAnchor constant:0.0].active = YES;
+    [_appName.trailingAnchor constraintEqualToAnchor:self.trailingAnchor constant:0.0].active = YES;
+    [_appName.bottomAnchor constraintEqualToAnchor:self.bottomAnchor constant:0.0].active = YES;
 
-    [self addSubview:_imageView];
     return self;
 }
--(void)setImage:(UIImage*)img {
-    _imageView.image = img;
-}
+
 @end
 
 @interface SBHomeScreenViewController: UIViewController<UIGestureRecognizerDelegate,UICollectionViewDataSource,UICollectionViewDelegateFlowLayout>
@@ -132,6 +152,10 @@ NSArray *bundleIds;
 
 %new
 -(void)onHomeSwipeUp:(UIGestureRecognizer*)sender {
+    if([sender locationInView:self.view].y > screen.height - 90) {
+        return;
+    }
+
     [UIView animateWithDuration:0.3
         delay:0
         options: UIViewAnimationCurveEaseIn
@@ -160,7 +184,7 @@ NSArray *bundleIds;
         options: UIViewAnimationCurveEaseOut
         animations:^ {
             CGRect frame = xDrawerView.frame;
-            frame.origin.y = screen.height - statusBarHeight;
+            frame.origin.y = screen.height;
             xDrawerView.frame = frame;
             xDrawerView.alpha = 0;
          }
@@ -170,7 +194,7 @@ NSArray *bundleIds;
 %new
 -(void)setupHomeDoubleTap {
     UITapGestureRecognizer *recognizer = [[UITapGestureRecognizer alloc] initWithTarget:self action:@selector(onHomeDoubleTap:)];
-    recognizer.numberOfTapsRequired = 1;
+    recognizer.numberOfTapsRequired = 2;
     recognizer.delegate = self;
     [xHomeView addGestureRecognizer:recognizer];
 }
@@ -184,7 +208,6 @@ NSArray *bundleIds;
     GSSendSystemEvent(&record);
     record.type = kGSEventLockButtonUp;
     GSSendSystemEvent(&record);
-    [self onHomeSwipeUp:nil];
 }
 
 // Collection view
@@ -196,13 +219,14 @@ NSArray *bundleIds;
 %new
 -(UICollectionViewCell*)collectionView:(UICollectionView *)collectionView cellForItemAtIndexPath:(NSIndexPath*)indexPath {
     XIconCellView* cell = (XIconCellView*) [collectionView dequeueReusableCellWithReuseIdentifier:@"cellIdentifier" forIndexPath:indexPath];
-    [cell setImage:[[ALApplicationList sharedApplicationList] iconOfSize:ALApplicationIconSizeLarge forDisplayIdentifier:bundleIds[indexPath.row]]];
+    [[cell appIcon] setImage:[[ALApplicationList sharedApplicationList] iconOfSize:ALApplicationIconSizeLarge forDisplayIdentifier:bundleIds[indexPath.row]]];
+    [[cell appName] setText:applications[bundleIds[indexPath.row]]];
     return cell;
 }
 
 %new
 -(CGSize)collectionView:(UICollectionView*)collectionView layout:(UICollectionViewLayout*)collectionViewLayout sizeForItemAtIndexPath:(NSIndexPath*)indexPath {
-    return icon;
+    return CGSizeMake(icon.width + 12, icon.height + 20);
 }
 
 %new
