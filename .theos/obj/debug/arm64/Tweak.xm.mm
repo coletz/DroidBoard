@@ -1,43 +1,63 @@
 #line 1 "Tweak.xm"
-#import <SpringBoard/SpringBoard.h>
 #import <AppList/AppList.h>
-#import <GraphicsServices/GraphicsServices.h>
+#import <GraphicsServices/GSEvent.h>
+
+
+@interface UIApplication (Undocumented)
+- (void) launchApplicationWithIdentifier: (NSString*)identifier suspended: (BOOL)suspended; 
+@end
+
+@interface XIconCellView: UICollectionViewCell
+@property (strong, nonatomic) UIImageView* appIcon;
+@property (strong, nonatomic) UILabel* appName;
+-(XIconCellView*)initWithFrame:(CGRect)frame;
+@end
 
 
 static CGSize screen;
 static CGSize icon = CGSizeMake(ALApplicationIconSizeLarge, ALApplicationIconSizeLarge);
 static int statusBarHeight = 20;
 
-@interface UIApplication (Undocumented)
-- (void) launchApplicationWithIdentifier: (NSString*)identifier suspended: (BOOL)suspended; 
-@end
-
-
-@interface XIconCellView: UICollectionViewCell
-@property (strong, nonatomic) UIImageView* imageView;
--(XIconCellView*)initWithFrame:(CGRect)frame;
--(void)setImage:(UIImage*)img;
-@end
 
 @implementation XIconCellView
 -(XIconCellView*)initWithFrame:(CGRect)frame {
     self = [super initWithFrame:frame];
-    _imageView = [[UIImageView alloc] initWithFrame:CGRectMake(0, 0, icon.width, icon.height)];
-    _imageView.layer.cornerRadius = 12;
-    _imageView.layer.masksToBounds = YES;
-    _imageView.layer.shouldRasterize = YES; 
-    _imageView.layer.rasterizationScale = [UIScreen mainScreen].scale; 
-    _imageView.layer.borderColor = [[UIColor colorWithRed:0.35 green:0.35 blue:0.35 alpha:1] CGColor];
-    _imageView.layer.borderWidth = 1.0;
+    
+    _appIcon = [[UIImageView alloc] initWithFrame:CGRectMake(0, 0, icon.width, icon.height)];
+    
+    int elevation = 2;
+    _appIcon.layer.masksToBounds = NO;
+    _appIcon.layer.shadowColor = [[UIColor blackColor] CGColor];
+    _appIcon.layer.shadowOffset = CGSizeMake(0, elevation);
+    _appIcon.layer.shadowOpacity = 0.24;
+    _appIcon.layer.shadowRadius = elevation;
 
+    _appIcon.layer.borderWidth = 1.0;
+    _appIcon.layer.borderColor = [[UIColor colorWithRed:0.5 green:0.5 blue:0.5 alpha:0.35] CGColor];
+    _appIcon.layer.cornerRadius = 12;
+    _appIcon.layer.shouldRasterize = YES; 
+    _appIcon.layer.rasterizationScale = [UIScreen mainScreen].scale; 
+    [self addSubview:_appIcon];
+    
+    [_appIcon setTranslatesAutoresizingMaskIntoConstraints:NO];
+    [_appIcon.topAnchor constraintEqualToAnchor:self.topAnchor constant:0.0].active = YES;
+    [_appIcon.centerXAnchor constraintEqualToAnchor:self.centerXAnchor].active = YES;
 
+    
+    _appName = [[UILabel alloc] initWithFrame:CGRectMake(0, 0, self.bounds.size.width, self.bounds.size.height)];
+    _appName.textColor = [UIColor blackColor];
+    _appName.textAlignment = NSTextAlignmentCenter;
+    _appName.font = [UIFont systemFontOfSize:12];
+    [self addSubview:_appName];
+    
+    [_appName setTranslatesAutoresizingMaskIntoConstraints:NO];
+    [_appName.leadingAnchor constraintEqualToAnchor:self.leadingAnchor constant:0.0].active = YES;
+    [_appName.trailingAnchor constraintEqualToAnchor:self.trailingAnchor constant:0.0].active = YES;
+    [_appName.bottomAnchor constraintEqualToAnchor:self.bottomAnchor constant:0.0].active = YES;
 
-    [self addSubview:_imageView];
     return self;
 }
--(void)setImage:(UIImage*)img {
-    _imageView.image = img;
-}
+
 @end
 
 @interface SBHomeScreenViewController: UIViewController<UIGestureRecognizerDelegate,UICollectionViewDataSource,UICollectionViewDelegateFlowLayout>
@@ -80,7 +100,7 @@ static int statusBarHeight = 20;
 @class SBHomeScreenViewController; 
 static void (*_logos_orig$_ungrouped$SBHomeScreenViewController$viewDidAppear$)(_LOGOS_SELF_TYPE_NORMAL SBHomeScreenViewController* _LOGOS_SELF_CONST, SEL, BOOL); static void _logos_method$_ungrouped$SBHomeScreenViewController$viewDidAppear$(_LOGOS_SELF_TYPE_NORMAL SBHomeScreenViewController* _LOGOS_SELF_CONST, SEL, BOOL); static void _logos_method$_ungrouped$SBHomeScreenViewController$loadApps(_LOGOS_SELF_TYPE_NORMAL SBHomeScreenViewController* _LOGOS_SELF_CONST, SEL); static void _logos_method$_ungrouped$SBHomeScreenViewController$updateScreenSize(_LOGOS_SELF_TYPE_NORMAL SBHomeScreenViewController* _LOGOS_SELF_CONST, SEL); static void _logos_method$_ungrouped$SBHomeScreenViewController$setupDrawerGrid(_LOGOS_SELF_TYPE_NORMAL SBHomeScreenViewController* _LOGOS_SELF_CONST, SEL); static void _logos_method$_ungrouped$SBHomeScreenViewController$setupHomeSwipeUp(_LOGOS_SELF_TYPE_NORMAL SBHomeScreenViewController* _LOGOS_SELF_CONST, SEL); static void _logos_method$_ungrouped$SBHomeScreenViewController$onHomeSwipeUp$(_LOGOS_SELF_TYPE_NORMAL SBHomeScreenViewController* _LOGOS_SELF_CONST, SEL, UIGestureRecognizer*); static void _logos_method$_ungrouped$SBHomeScreenViewController$setupDrawerSwipeDown(_LOGOS_SELF_TYPE_NORMAL SBHomeScreenViewController* _LOGOS_SELF_CONST, SEL); static void _logos_method$_ungrouped$SBHomeScreenViewController$onDrawerSwipeDown$(_LOGOS_SELF_TYPE_NORMAL SBHomeScreenViewController* _LOGOS_SELF_CONST, SEL, UIGestureRecognizer*); static void _logos_method$_ungrouped$SBHomeScreenViewController$setupHomeDoubleTap(_LOGOS_SELF_TYPE_NORMAL SBHomeScreenViewController* _LOGOS_SELF_CONST, SEL); static void _logos_method$_ungrouped$SBHomeScreenViewController$onHomeDoubleTap$(_LOGOS_SELF_TYPE_NORMAL SBHomeScreenViewController* _LOGOS_SELF_CONST, SEL, UIGestureRecognizer*); static NSInteger _logos_method$_ungrouped$SBHomeScreenViewController$collectionView$numberOfItemsInSection$(_LOGOS_SELF_TYPE_NORMAL SBHomeScreenViewController* _LOGOS_SELF_CONST, SEL, UICollectionView *, NSInteger); static UICollectionViewCell* _logos_method$_ungrouped$SBHomeScreenViewController$collectionView$cellForItemAtIndexPath$(_LOGOS_SELF_TYPE_NORMAL SBHomeScreenViewController* _LOGOS_SELF_CONST, SEL, UICollectionView *, NSIndexPath*); static CGSize _logos_method$_ungrouped$SBHomeScreenViewController$collectionView$layout$sizeForItemAtIndexPath$(_LOGOS_SELF_TYPE_NORMAL SBHomeScreenViewController* _LOGOS_SELF_CONST, SEL, UICollectionView*, UICollectionViewLayout*, NSIndexPath*); static void _logos_method$_ungrouped$SBHomeScreenViewController$collectionView$didSelectItemAtIndexPath$(_LOGOS_SELF_TYPE_NORMAL SBHomeScreenViewController* _LOGOS_SELF_CONST, SEL, UICollectionView*, NSIndexPath*); 
 
-#line 58 "Tweak.xm"
+#line 78 "Tweak.xm"
 
 
 
@@ -158,6 +178,10 @@ static void _logos_method$_ungrouped$SBHomeScreenViewController$setupHomeSwipeUp
 
 
 static void _logos_method$_ungrouped$SBHomeScreenViewController$onHomeSwipeUp$(_LOGOS_SELF_TYPE_NORMAL SBHomeScreenViewController* _LOGOS_SELF_CONST __unused self, SEL __unused _cmd, UIGestureRecognizer* sender) {
+    if([sender locationInView:self.view].y > screen.height - 90) {
+        return;
+    }
+
     [UIView animateWithDuration:0.3
         delay:0
         options: UIViewAnimationCurveEaseIn
@@ -186,7 +210,7 @@ static void _logos_method$_ungrouped$SBHomeScreenViewController$onDrawerSwipeDow
         options: UIViewAnimationCurveEaseOut
         animations:^ {
             CGRect frame = xDrawerView.frame;
-            frame.origin.y = screen.height - statusBarHeight;
+            frame.origin.y = screen.height;
             xDrawerView.frame = frame;
             xDrawerView.alpha = 0;
          }
@@ -196,7 +220,7 @@ static void _logos_method$_ungrouped$SBHomeScreenViewController$onDrawerSwipeDow
 
 static void _logos_method$_ungrouped$SBHomeScreenViewController$setupHomeDoubleTap(_LOGOS_SELF_TYPE_NORMAL SBHomeScreenViewController* _LOGOS_SELF_CONST __unused self, SEL __unused _cmd) {
     UITapGestureRecognizer *recognizer = [[UITapGestureRecognizer alloc] initWithTarget:self action:@selector(onHomeDoubleTap:)];
-    recognizer.numberOfTapsRequired = 1;
+    recognizer.numberOfTapsRequired = 2;
     recognizer.delegate = self;
     [xHomeView addGestureRecognizer:recognizer];
 }
@@ -210,7 +234,6 @@ static void _logos_method$_ungrouped$SBHomeScreenViewController$onHomeDoubleTap$
     GSSendSystemEvent(&record);
     record.type = kGSEventLockButtonUp;
     GSSendSystemEvent(&record);
-    [self onHomeSwipeUp:nil];
 }
 
 
@@ -222,13 +245,14 @@ static NSInteger _logos_method$_ungrouped$SBHomeScreenViewController$collectionV
 
 static UICollectionViewCell* _logos_method$_ungrouped$SBHomeScreenViewController$collectionView$cellForItemAtIndexPath$(_LOGOS_SELF_TYPE_NORMAL SBHomeScreenViewController* _LOGOS_SELF_CONST __unused self, SEL __unused _cmd, UICollectionView * collectionView, NSIndexPath* indexPath) {
     XIconCellView* cell = (XIconCellView*) [collectionView dequeueReusableCellWithReuseIdentifier:@"cellIdentifier" forIndexPath:indexPath];
-    [cell setImage:[[ALApplicationList sharedApplicationList] iconOfSize:ALApplicationIconSizeLarge forDisplayIdentifier:bundleIds[indexPath.row]]];
+    [[cell appIcon] setImage:[[ALApplicationList sharedApplicationList] iconOfSize:ALApplicationIconSizeLarge forDisplayIdentifier:bundleIds[indexPath.row]]];
+    [[cell appName] setText:applications[bundleIds[indexPath.row]]];
     return cell;
 }
 
 
 static CGSize _logos_method$_ungrouped$SBHomeScreenViewController$collectionView$layout$sizeForItemAtIndexPath$(_LOGOS_SELF_TYPE_NORMAL SBHomeScreenViewController* _LOGOS_SELF_CONST __unused self, SEL __unused _cmd, UICollectionView* collectionView, UICollectionViewLayout* collectionViewLayout, NSIndexPath* indexPath) {
-    return icon;
+    return CGSizeMake(icon.width + 12, icon.height + 20);
 }
 
 
@@ -241,4 +265,4 @@ static void _logos_method$_ungrouped$SBHomeScreenViewController$collectionView$d
 
 static __attribute__((constructor)) void _logosLocalInit() {
 {Class _logos_class$_ungrouped$SBHomeScreenViewController = objc_getClass("SBHomeScreenViewController"); MSHookMessageEx(_logos_class$_ungrouped$SBHomeScreenViewController, @selector(viewDidAppear:), (IMP)&_logos_method$_ungrouped$SBHomeScreenViewController$viewDidAppear$, (IMP*)&_logos_orig$_ungrouped$SBHomeScreenViewController$viewDidAppear$);{ char _typeEncoding[1024]; unsigned int i = 0; _typeEncoding[i] = 'v'; i += 1; _typeEncoding[i] = '@'; i += 1; _typeEncoding[i] = ':'; i += 1; _typeEncoding[i] = '\0'; class_addMethod(_logos_class$_ungrouped$SBHomeScreenViewController, @selector(loadApps), (IMP)&_logos_method$_ungrouped$SBHomeScreenViewController$loadApps, _typeEncoding); }{ char _typeEncoding[1024]; unsigned int i = 0; _typeEncoding[i] = 'v'; i += 1; _typeEncoding[i] = '@'; i += 1; _typeEncoding[i] = ':'; i += 1; _typeEncoding[i] = '\0'; class_addMethod(_logos_class$_ungrouped$SBHomeScreenViewController, @selector(updateScreenSize), (IMP)&_logos_method$_ungrouped$SBHomeScreenViewController$updateScreenSize, _typeEncoding); }{ char _typeEncoding[1024]; unsigned int i = 0; _typeEncoding[i] = 'v'; i += 1; _typeEncoding[i] = '@'; i += 1; _typeEncoding[i] = ':'; i += 1; _typeEncoding[i] = '\0'; class_addMethod(_logos_class$_ungrouped$SBHomeScreenViewController, @selector(setupDrawerGrid), (IMP)&_logos_method$_ungrouped$SBHomeScreenViewController$setupDrawerGrid, _typeEncoding); }{ char _typeEncoding[1024]; unsigned int i = 0; _typeEncoding[i] = 'v'; i += 1; _typeEncoding[i] = '@'; i += 1; _typeEncoding[i] = ':'; i += 1; _typeEncoding[i] = '\0'; class_addMethod(_logos_class$_ungrouped$SBHomeScreenViewController, @selector(setupHomeSwipeUp), (IMP)&_logos_method$_ungrouped$SBHomeScreenViewController$setupHomeSwipeUp, _typeEncoding); }{ char _typeEncoding[1024]; unsigned int i = 0; _typeEncoding[i] = 'v'; i += 1; _typeEncoding[i] = '@'; i += 1; _typeEncoding[i] = ':'; i += 1; memcpy(_typeEncoding + i, @encode(UIGestureRecognizer*), strlen(@encode(UIGestureRecognizer*))); i += strlen(@encode(UIGestureRecognizer*)); _typeEncoding[i] = '\0'; class_addMethod(_logos_class$_ungrouped$SBHomeScreenViewController, @selector(onHomeSwipeUp:), (IMP)&_logos_method$_ungrouped$SBHomeScreenViewController$onHomeSwipeUp$, _typeEncoding); }{ char _typeEncoding[1024]; unsigned int i = 0; _typeEncoding[i] = 'v'; i += 1; _typeEncoding[i] = '@'; i += 1; _typeEncoding[i] = ':'; i += 1; _typeEncoding[i] = '\0'; class_addMethod(_logos_class$_ungrouped$SBHomeScreenViewController, @selector(setupDrawerSwipeDown), (IMP)&_logos_method$_ungrouped$SBHomeScreenViewController$setupDrawerSwipeDown, _typeEncoding); }{ char _typeEncoding[1024]; unsigned int i = 0; _typeEncoding[i] = 'v'; i += 1; _typeEncoding[i] = '@'; i += 1; _typeEncoding[i] = ':'; i += 1; memcpy(_typeEncoding + i, @encode(UIGestureRecognizer*), strlen(@encode(UIGestureRecognizer*))); i += strlen(@encode(UIGestureRecognizer*)); _typeEncoding[i] = '\0'; class_addMethod(_logos_class$_ungrouped$SBHomeScreenViewController, @selector(onDrawerSwipeDown:), (IMP)&_logos_method$_ungrouped$SBHomeScreenViewController$onDrawerSwipeDown$, _typeEncoding); }{ char _typeEncoding[1024]; unsigned int i = 0; _typeEncoding[i] = 'v'; i += 1; _typeEncoding[i] = '@'; i += 1; _typeEncoding[i] = ':'; i += 1; _typeEncoding[i] = '\0'; class_addMethod(_logos_class$_ungrouped$SBHomeScreenViewController, @selector(setupHomeDoubleTap), (IMP)&_logos_method$_ungrouped$SBHomeScreenViewController$setupHomeDoubleTap, _typeEncoding); }{ char _typeEncoding[1024]; unsigned int i = 0; _typeEncoding[i] = 'v'; i += 1; _typeEncoding[i] = '@'; i += 1; _typeEncoding[i] = ':'; i += 1; memcpy(_typeEncoding + i, @encode(UIGestureRecognizer*), strlen(@encode(UIGestureRecognizer*))); i += strlen(@encode(UIGestureRecognizer*)); _typeEncoding[i] = '\0'; class_addMethod(_logos_class$_ungrouped$SBHomeScreenViewController, @selector(onHomeDoubleTap:), (IMP)&_logos_method$_ungrouped$SBHomeScreenViewController$onHomeDoubleTap$, _typeEncoding); }{ char _typeEncoding[1024]; unsigned int i = 0; memcpy(_typeEncoding + i, @encode(NSInteger), strlen(@encode(NSInteger))); i += strlen(@encode(NSInteger)); _typeEncoding[i] = '@'; i += 1; _typeEncoding[i] = ':'; i += 1; memcpy(_typeEncoding + i, @encode(UICollectionView *), strlen(@encode(UICollectionView *))); i += strlen(@encode(UICollectionView *)); memcpy(_typeEncoding + i, @encode(NSInteger), strlen(@encode(NSInteger))); i += strlen(@encode(NSInteger)); _typeEncoding[i] = '\0'; class_addMethod(_logos_class$_ungrouped$SBHomeScreenViewController, @selector(collectionView:numberOfItemsInSection:), (IMP)&_logos_method$_ungrouped$SBHomeScreenViewController$collectionView$numberOfItemsInSection$, _typeEncoding); }{ char _typeEncoding[1024]; unsigned int i = 0; memcpy(_typeEncoding + i, @encode(UICollectionViewCell*), strlen(@encode(UICollectionViewCell*))); i += strlen(@encode(UICollectionViewCell*)); _typeEncoding[i] = '@'; i += 1; _typeEncoding[i] = ':'; i += 1; memcpy(_typeEncoding + i, @encode(UICollectionView *), strlen(@encode(UICollectionView *))); i += strlen(@encode(UICollectionView *)); memcpy(_typeEncoding + i, @encode(NSIndexPath*), strlen(@encode(NSIndexPath*))); i += strlen(@encode(NSIndexPath*)); _typeEncoding[i] = '\0'; class_addMethod(_logos_class$_ungrouped$SBHomeScreenViewController, @selector(collectionView:cellForItemAtIndexPath:), (IMP)&_logos_method$_ungrouped$SBHomeScreenViewController$collectionView$cellForItemAtIndexPath$, _typeEncoding); }{ char _typeEncoding[1024]; unsigned int i = 0; memcpy(_typeEncoding + i, @encode(CGSize), strlen(@encode(CGSize))); i += strlen(@encode(CGSize)); _typeEncoding[i] = '@'; i += 1; _typeEncoding[i] = ':'; i += 1; memcpy(_typeEncoding + i, @encode(UICollectionView*), strlen(@encode(UICollectionView*))); i += strlen(@encode(UICollectionView*)); memcpy(_typeEncoding + i, @encode(UICollectionViewLayout*), strlen(@encode(UICollectionViewLayout*))); i += strlen(@encode(UICollectionViewLayout*)); memcpy(_typeEncoding + i, @encode(NSIndexPath*), strlen(@encode(NSIndexPath*))); i += strlen(@encode(NSIndexPath*)); _typeEncoding[i] = '\0'; class_addMethod(_logos_class$_ungrouped$SBHomeScreenViewController, @selector(collectionView:layout:sizeForItemAtIndexPath:), (IMP)&_logos_method$_ungrouped$SBHomeScreenViewController$collectionView$layout$sizeForItemAtIndexPath$, _typeEncoding); }{ char _typeEncoding[1024]; unsigned int i = 0; _typeEncoding[i] = 'v'; i += 1; _typeEncoding[i] = '@'; i += 1; _typeEncoding[i] = ':'; i += 1; memcpy(_typeEncoding + i, @encode(UICollectionView*), strlen(@encode(UICollectionView*))); i += strlen(@encode(UICollectionView*)); memcpy(_typeEncoding + i, @encode(NSIndexPath*), strlen(@encode(NSIndexPath*))); i += strlen(@encode(NSIndexPath*)); _typeEncoding[i] = '\0'; class_addMethod(_logos_class$_ungrouped$SBHomeScreenViewController, @selector(collectionView:didSelectItemAtIndexPath:), (IMP)&_logos_method$_ungrouped$SBHomeScreenViewController$collectionView$didSelectItemAtIndexPath$, _typeEncoding); }} }
-#line 216 "Tweak.xm"
+#line 240 "Tweak.xm"
