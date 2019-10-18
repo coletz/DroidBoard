@@ -81,7 +81,7 @@ static int statusBarHeight = 20;
 UIView* xRootView;
 UIView* xHomeView;
 UIView* xDrawerView;
-UICollectionView *_collectionView;
+UICollectionView* xCollectionView;
 
 NSDictionary *applications;
 NSArray *bundleIds;
@@ -116,8 +116,9 @@ NSArray *bundleIds;
 %new
 -(void)loadApps {
 	NSArray *outIds;
-	NSPredicate *filter = [NSPredicate predicateWithFormat:@"isSystemApplication = FALSE"];
-	applications = [[ALApplicationList sharedApplicationList] applicationsFilteredUsingPredicate:filter onlyVisible:YES titleSortedIdentifiers:&outIds];
+	//NSPredicate *filter = [NSPredicate predicateWithFormat:@"isSystemApplication = FALSE"];
+	//applications = [[ALApplicationList sharedApplicationList] applicationsFilteredUsingPredicate:filter onlyVisible:YES titleSortedIdentifiers:&outIds];
+	applications = [[ALApplicationList sharedApplicationList] applicationsFilteredUsingPredicate:nil onlyVisible:YES titleSortedIdentifiers:&outIds];
 	bundleIds = outIds;
 }
 
@@ -130,15 +131,15 @@ NSArray *bundleIds;
 %new
 -(void)setupDrawerGrid {
     UICollectionViewFlowLayout *layout=[[UICollectionViewFlowLayout alloc] init];
-    _collectionView = [[UICollectionView alloc] initWithFrame:CGRectMake(0, 0, xDrawerView.frame.size.width, xDrawerView.frame.size.height) collectionViewLayout:layout];
-    [_collectionView setContentInset:UIEdgeInsetsMake(30, 30, 0, 30)];
-    [_collectionView setDataSource:self];
-    [_collectionView setDelegate:self];
+    xCollectionView = [[UICollectionView alloc] initWithFrame:CGRectMake(0, 0, xDrawerView.frame.size.width, xDrawerView.frame.size.height) collectionViewLayout:layout];
+    [xCollectionView setContentInset:UIEdgeInsetsMake(30, 30, 0, 30)];
+    [xCollectionView setDataSource:self];
+    [xCollectionView setDelegate:self];
 
-    [_collectionView registerClass:[XIconCellView class] forCellWithReuseIdentifier:@"cellIdentifier"];
-    _collectionView.backgroundColor = nil;
+    [xCollectionView registerClass:[XIconCellView class] forCellWithReuseIdentifier:@"cellIdentifier"];
+    xCollectionView.backgroundColor = nil;
 
-    [xDrawerView addSubview:_collectionView];
+    [xDrawerView addSubview:xCollectionView];
 }
 
 %new
@@ -179,6 +180,9 @@ NSArray *bundleIds;
 
 %new
 -(void)onDrawerSwipeDown:(UIGestureRecognizer*)sender {
+    if (xCollectionView.contentOffset.y > 10) {
+        return;
+    }
     [UIView animateWithDuration:0.3
         delay:0
         options: UIViewAnimationCurveEaseOut
@@ -234,6 +238,11 @@ NSArray *bundleIds;
     [self onDrawerSwipeDown:nil];
 
     [[UIApplication sharedApplication] launchApplicationWithIdentifier:bundleIds[indexPath.row] suspended:NO];
+}
+
+%new
+-(BOOL)gestureRecognizer:(UIGestureRecognizer*)gestureRecognizer shouldRecognizeSimultaneouslyWithGestureRecognizer:(UIGestureRecognizer*)otherGestureRecognizer {
+    return YES;
 }
 
 %end
