@@ -7,7 +7,7 @@ include $(THEOS)/makefiles/common.mk
 
 TWEAK_NAME = DroidBoard
 
-DroidBoard_FILES = Tweak.xm
+DroidBoard_FILES = $(wildcard src/*.xm)
 DroidBoard_CFLAGS = -fobjc-arc
 DroidBoard_LIBRARIES = applist
 DroidBoard_PRIVATE_FRAMEWORKS = GraphicsServices
