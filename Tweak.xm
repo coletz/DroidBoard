@@ -23,7 +23,8 @@ static int statusBarHeight = 20;
     self = [super initWithFrame:frame];
     // - ICON
     _appIcon = [[UIImageView alloc] initWithFrame:CGRectMake(0, 0, icon.width, icon.height)];
-    
+    _appIcon.contentMode = UIViewContentModeScaleAspectFit;    
+
     int elevation = 2;
     _appIcon.layer.masksToBounds = NO;
     _appIcon.layer.shadowColor = [[UIColor blackColor] CGColor];
@@ -41,6 +42,7 @@ static int statusBarHeight = 20;
     [_appIcon setTranslatesAutoresizingMaskIntoConstraints:NO];
     [_appIcon.topAnchor constraintEqualToAnchor:self.topAnchor constant:0.0].active = YES;
     [_appIcon.centerXAnchor constraintEqualToAnchor:self.centerXAnchor].active = YES;
+    //[_appIcon.widthAnchor constraintEqualToAnchor:self.widthAnchor multiplier:0.75]:
 
     // - NAME LABEl
     _appName = [[UILabel alloc] initWithFrame:CGRectMake(0, 0, self.bounds.size.width, self.bounds.size.height)];
@@ -132,7 +134,7 @@ NSArray *bundleIds;
 -(void)setupDrawerGrid {
     UICollectionViewFlowLayout *layout=[[UICollectionViewFlowLayout alloc] init];
     xCollectionView = [[UICollectionView alloc] initWithFrame:CGRectMake(0, 0, xDrawerView.frame.size.width, xDrawerView.frame.size.height) collectionViewLayout:layout];
-    [xCollectionView setContentInset:UIEdgeInsetsMake(30, 30, 0, 30)];
+    [xCollectionView setContentInset:UIEdgeInsetsMake(32, 16, 0, 16)];
     [xCollectionView setDataSource:self];
     [xCollectionView setDelegate:self];
 
@@ -230,7 +232,7 @@ NSArray *bundleIds;
 
 %new
 -(CGSize)collectionView:(UICollectionView*)collectionView layout:(UICollectionViewLayout*)collectionViewLayout sizeForItemAtIndexPath:(NSIndexPath*)indexPath {
-    return CGSizeMake(icon.width + 12, icon.height + 20);
+    return CGSizeMake(icon.width, icon.height + 20);
 }
 
 %new
