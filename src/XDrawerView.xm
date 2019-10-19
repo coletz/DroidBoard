@@ -27,8 +27,6 @@ NSArray *systemBundleIds;
 
 -(void)loadApps {
 	NSArray *outIds;
-	//NSPredicate *filter = [NSPredicate predicateWithFormat:@"isSystemApplication = FALSE"];
-	//applications = [[ALApplicationList sharedApplicationList] applicationsFilteredUsingPredicate:filter onlyVisible:YES titleSortedIdentifiers:&outIds];
 	userApplications = [[ALApplicationList sharedApplicationList] applicationsFilteredUsingPredicate:nil onlyVisible:YES titleSortedIdentifiers:&outIds];
 	userBundleIds = outIds;
 }

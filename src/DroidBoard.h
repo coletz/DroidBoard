@@ -16,6 +16,7 @@
 
 @interface SBHomeScreenViewController: UIViewController<UIGestureRecognizerDelegate, XAppLaunchDelegate, XCoordinatorDelegate>
 -(void)updateScreenSize;
+-(void)setupBackground;
 
 -(void)setupHomeDoubleTap;
 -(void)onHomeDoubleTap:(UIGestureRecognizer*)sender;

@@ -5,8 +5,15 @@
 @synthesize appLaunchDelegate;
 @synthesize coordinatorDelegate;
 
-NSDictionary *applications;
-NSArray *bundleIds;
+NSDictionary* applications;
+NSArray* bundleIds;
+
+NSArray* preferredBundleIds = @[
+    @"com.atebits.Tweetie2",
+    @"com.google.chrome.ios",
+    @"ph.telegra.Telegraph",
+    @"com.apple.mobilephone"
+];
 
 - (void)setAppLaunchDelegate:(id <XAppLaunchDelegate>)delegate {
     appLaunchDelegate = delegate;
@@ -64,13 +71,13 @@ NSArray *bundleIds;
 
 // Collection view
 -(NSInteger)collectionView:(UICollectionView *)collectionView numberOfItemsInSection:(NSInteger)section {
-    return applications.count;
+    return preferredBundleIds.count;
 }
 
 -(UICollectionViewCell*)collectionView:(UICollectionView *)collectionView cellForItemAtIndexPath:(NSIndexPath*)indexPath {
     XIconCellView* cell = (XIconCellView*) [collectionView dequeueReusableCellWithReuseIdentifier:@"cellIdentifier" forIndexPath:indexPath];
-    [[cell appIcon] setImage:[[ALApplicationList sharedApplicationList] iconOfSize:ALApplicationIconSizeLarge forDisplayIdentifier:bundleIds[indexPath.row]]];
-    [[cell appName] setText:applications[bundleIds[indexPath.row]]];
+    [[cell appIcon] setImage:[[ALApplicationList sharedApplicationList] iconOfSize:ALApplicationIconSizeLarge forDisplayIdentifier:preferredBundleIds[indexPath.row]]];
+    [[cell appName] setText:applications[preferredBundleIds[indexPath.row]]];
     return cell;
 }
 
@@ -79,7 +86,7 @@ NSArray *bundleIds;
 }
 
 -(void)collectionView:(UICollectionView*)collectionView didSelectItemAtIndexPath:(NSIndexPath*)indexPath  {
-    [appLaunchDelegate launch:bundleIds[indexPath.row]];
+    [appLaunchDelegate launch:preferredBundleIds[indexPath.row]];
 }
 
 -(BOOL)gestureRecognizer:(UIGestureRecognizer*)gestureRecognizer shouldRecognizeSimultaneouslyWithGestureRecognizer:(UIGestureRecognizer*)otherGestureRecognizer {

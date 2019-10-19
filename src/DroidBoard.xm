@@ -17,6 +17,7 @@ XDrawerView* xDrawerView;
     [self updateScreenSize];
     
     xRootView = [[UIView alloc]initWithFrame:CGRectMake(0, 0, screen.width, screen.height)];
+    [self setupBackground];
     [self.view addSubview:xRootView];
 
     xHomeView = [[XHomeView alloc]initWithFrame:CGRectMake(0, 0, screen.width, screen.height - statusBarHeight)];
@@ -50,6 +51,15 @@ XDrawerView* xDrawerView;
     [xDrawerView hide];
 }
 
+%new
+-(void)setupBackground {
+    CAGradientLayer *gradient = [CAGradientLayer layer];
+
+    gradient.frame = xRootView.bounds;
+    gradient.colors = @[(id)[UIColor cyanColor].CGColor, (id)[UIColor whiteColor].CGColor];
+
+    [xRootView.layer insertSublayer:gradient atIndex:0];
+}
 
 
 
