@@ -1,24 +1,22 @@
 #import "Constants.h"
 #import <AppList/AppList.h>
 #import <GraphicsServices/GSEvent.h>
+
 #import "XIconCellView.h"
+
+#import "XHomeView.h"
+#import "XDrawerView.h"
+
+#import "XAppLaunchDelegate.h"
+#import "XCoordinatorDelegate.h"
 
 @interface UIApplication (Undocumented)
 - (void) launchApplicationWithIdentifier: (NSString*)identifier suspended: (BOOL)suspended; 
 @end
 
-@interface SBHomeScreenViewController: UIViewController<UIGestureRecognizerDelegate,UICollectionViewDataSource,UICollectionViewDelegateFlowLayout>
--(void)loadApps;
+@interface SBHomeScreenViewController: UIViewController<UIGestureRecognizerDelegate, XAppLaunchDelegate, XCoordinatorDelegate>
 -(void)updateScreenSize;
-
--(void)setupHomeSwipeUp;
--(void)onHomeSwipeUp:(UIGestureRecognizer*)sender;
-
--(void)setupDrawerSwipeDown;
--(void)onDrawerSwipeDown:(UIGestureRecognizer*)sender;
 
 -(void)setupHomeDoubleTap;
 -(void)onHomeDoubleTap:(UIGestureRecognizer*)sender;
-
--(void)setupDrawerGrid;
 @end
