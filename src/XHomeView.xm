@@ -17,6 +17,10 @@ NSArray* preferredBundleIds = @[
 NSMutableArray* appCells = [[NSMutableArray alloc]init];
 
 BOOL isEditingCellPosition = NO;
+int horizontalCellNumber = 4;
+int verticalCellNumber = 5;
+int cellWidth = 0;
+int cellHeight = 0;
 
 - (void)setCoordinatorDelegate:(id <XCoordinatorDelegate>)delegate {
     coordinatorDelegate = delegate;
@@ -24,6 +28,9 @@ BOOL isEditingCellPosition = NO;
 
 -(XHomeView*)initWithFrame:(CGRect)frame {
     self = [super initWithFrame:frame];
+
+    cellWidth = self.bounds.size.width / horizontalCellNumber;
+    cellHeight = self.bounds.size.height / verticalCellNumber;
 
     [self loadApps];
     [self setupUserAppGrid];
@@ -59,6 +66,8 @@ BOOL isEditingCellPosition = NO;
         [cell addGestureRecognizer:tapGesture];
 
         [appCells addObject:cell];
+
+        [self adjustCellPosition:cell];
     }
 }
 
@@ -109,13 +118,17 @@ BOOL isEditingCellPosition = NO;
 }
 
 -(void)onCellDragged:(UIPanGestureRecognizer*)sender {
-    XIconCellView* cell = (XIconCellView*)sender.view;
     if(isEditingCellPosition){
+        XIconCellView* cell = (XIconCellView*)sender.view;
         CGPoint translation = [sender translationInView:self];
         [self bringSubviewToFront:cell];
 
         cell.center = CGPointMake(cell.center.x + translation.x, cell.center.y + translation.y);
         [sender setTranslation:CGPointZero inView: self];
+
+        if ([sender state] == UIGestureRecognizerStateEnded) {
+            [self adjustCellPosition:cell];
+        }
     }
 }
 
@@ -131,6 +144,44 @@ BOOL isEditingCellPosition = NO;
 
     UIButton* stopCellEditingBtn = (UIButton*)[self viewWithTag:3348];
     [stopCellEditingBtn removeFromSuperview];
+}
+
+-(void)adjustCellPosition:(XIconCellView*) appCell {
+    int horizontalCellIndex = ((int)appCell.center.x)/cellWidth;
+    if(horizontalCellIndex == 0) {
+        horizontalCellIndex = 1;
+    }
+    if(horizontalCellIndex == horizontalCellNumber) {
+        horizontalCellIndex = horizontalCellNumber - 1;
+    }
+    int horizontalReminder = appCell.center.x - horizontalCellIndex;
+    double horizontalPad = 0;
+    if(horizontalReminder < cellWidth) {
+        horizontalPad = -0.5;
+    } else if(horizontalReminder > cellWidth) {
+        horizontalPad = 0.5;
+    }
+    int adjustedHorizontalPosition = (horizontalCellIndex + horizontalPad) * cellWidth;
+
+
+    int verticalCellIndex = ((int)appCell.center.y)/cellHeight;
+    if(verticalCellIndex == 0) {
+        verticalCellIndex = 1;
+    }
+    if(verticalCellIndex == verticalCellNumber) {
+        verticalCellIndex = verticalCellNumber - 1;
+    }
+    int verticalReminder = appCell.center.y - verticalCellIndex;
+    double verticalPad = 0;
+    if(verticalReminder < cellHeight) {
+        verticalPad = -0.5;
+    } else if(verticalReminder > cellHeight) {
+        verticalPad = 0.5;
+    }
+    int adjustedVerticalPosition = (verticalCellIndex + verticalPad) * cellHeight;
+
+
+    appCell.center = CGPointMake(adjustedHorizontalPosition, adjustedVerticalPosition);
 }
 
 -(BOOL)gestureRecognizer:(UIGestureRecognizer*)gestureRecognizer shouldRecognizeSimultaneouslyWithGestureRecognizer:(UIGestureRecognizer*)otherGestureRecognizer {

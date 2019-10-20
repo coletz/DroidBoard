@@ -27,7 +27,7 @@ NSArray *systemBundleIds;
 -(void)setupUserAppGrid {
     UICollectionViewFlowLayout *layout=[[UICollectionViewFlowLayout alloc] init];
     _userAppsCollectionView = [[UICollectionView alloc] initWithFrame:CGRectMake(0, 0, self.frame.size.width, self.frame.size.height) collectionViewLayout:layout];
-    [_userAppsCollectionView setContentInset:UIEdgeInsetsMake(32, 16, 0, 16)];
+    [_userAppsCollectionView setContentInset:UIEdgeInsetsMake(32, 16, 16, 16)];
     [_userAppsCollectionView setDataSource:self];
     [_userAppsCollectionView setDelegate:self];
 
@@ -106,7 +106,7 @@ NSArray *systemBundleIds;
 }
 
 -(void)collectionView:(UICollectionView*)collectionView didSelectItemAtIndexPath:(NSIndexPath*)indexPath  {
-    [self hide];
+    [self hideProgrammatically];
     XIconCellView* cell = (XIconCellView*) [collectionView cellForItemAtIndexPath:indexPath];
     [cell launchApp];
 }
