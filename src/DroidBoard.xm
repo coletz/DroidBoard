@@ -20,19 +20,12 @@ XDrawerView* xDrawerView;
     [self setupBackground];
     [self.view addSubview:xRootView];
 
-    xHomeView = [[XHomeView alloc]initWithFrame:CGRectMake(0, 0, screen.width, screen.height - statusBarHeight)];
-    [xHomeView setAppLaunchDelegate:self];
+    xHomeView = [[XHomeView alloc]initWithFrame:CGRectMake(0, statusBarHeight, screen.width, screen.height - statusBarHeight)];
     [xHomeView setCoordinatorDelegate:self];
     [xRootView addSubview:xHomeView];
 
     xDrawerView = [[XDrawerView alloc]initWithFrame:CGRectMake(0, screen.height, screen.width, screen.height - statusBarHeight)];
-    [xDrawerView setAppLaunchDelegate:self];
     [xRootView addSubview:xDrawerView];
-}
-
-%new
--(void)launch:(NSString*)bundleId {
-    [[UIApplication sharedApplication] launchApplicationWithIdentifier:bundleId suspended:NO];
 }
 
 %new
@@ -56,7 +49,14 @@ XDrawerView* xDrawerView;
     CAGradientLayer *gradient = [CAGradientLayer layer];
 
     gradient.frame = xRootView.bounds;
-    gradient.colors = @[(id)[UIColor cyanColor].CGColor, (id)[UIColor whiteColor].CGColor];
+    gradient.colors = @[
+        //(id)[UIColor colorWithRed:0 green:0.5 blue:1 alpha:1].CGColor, 
+        //(id)[UIColor colorWithRed:0.17 green:0.85 blue:0.69 alpha:1].CGColor
+        (id)[UIColor colorWithRed:18.0/255.0 green:66.0/255.0 blue:71.0/255.0 alpha:1].CGColor,
+        (id)[UIColor colorWithRed:63.0/255.0 green:146.0/255.0 blue:126.0/255.0 alpha:1].CGColor,
+        (id)[UIColor colorWithRed:199.0/255.0 green:200.0/255.0 blue:208.0/255.0 alpha:1].CGColor,
+        (id)[UIColor colorWithRed:205.0/255.0 green:168.0/255.0 blue:126.0/255.0 alpha:1].CGColor
+    ];
 
     [xRootView.layer insertSublayer:gradient atIndex:0];
 }

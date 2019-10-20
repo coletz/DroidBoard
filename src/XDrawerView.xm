@@ -2,15 +2,8 @@
 
 @implementation XDrawerView
 
-@synthesize appLaunchDelegate;
-NSDictionary *userApplications;
-NSDictionary *systemApplications;
 NSArray *userBundleIds;
 NSArray *systemBundleIds;
-
-- (void)setAppLaunchDelegate:(id <XAppLaunchDelegate>)delegate {
-	appLaunchDelegate = delegate;
-}
 
 -(XDrawerView*)initWithFrame:(CGRect)frame {
     self = [super initWithFrame:frame];
@@ -27,7 +20,7 @@ NSArray *systemBundleIds;
 
 -(void)loadApps {
 	NSArray *outIds;
-	userApplications = [[ALApplicationList sharedApplicationList] applicationsFilteredUsingPredicate:nil onlyVisible:YES titleSortedIdentifiers:&outIds];
+	[[ALApplicationList sharedApplicationList] applicationsFilteredUsingPredicate:nil onlyVisible:YES titleSortedIdentifiers:&outIds];
 	userBundleIds = outIds;
 }
 
@@ -92,20 +85,19 @@ NSArray *systemBundleIds;
             CGRect frame = self.frame;
             frame.origin.y = self.bounds.size.height + statusBarHeight;
             self.frame = frame;
-            //self.alpha = 0;
+            self.alpha = 0;
          }
          completion:nil];
 }
 
 // Collection view
 -(NSInteger)collectionView:(UICollectionView *)collectionView numberOfItemsInSection:(NSInteger)section {
-    return userApplications.count;
+    return userBundleIds.count;
 }
 
 -(UICollectionViewCell*)collectionView:(UICollectionView *)collectionView cellForItemAtIndexPath:(NSIndexPath*)indexPath {
     XIconCellView* cell = (XIconCellView*) [collectionView dequeueReusableCellWithReuseIdentifier:@"cellIdentifier" forIndexPath:indexPath];
-    [[cell appIcon] setImage:[[ALApplicationList sharedApplicationList] iconOfSize:ALApplicationIconSizeLarge forDisplayIdentifier:userBundleIds[indexPath.row]]];
-    [[cell appName] setText:userApplications[userBundleIds[indexPath.row]]];
+    [cell setAppId:userBundleIds[indexPath.row]];
     return cell;
 }
 
@@ -115,8 +107,8 @@ NSArray *systemBundleIds;
 
 -(void)collectionView:(UICollectionView*)collectionView didSelectItemAtIndexPath:(NSIndexPath*)indexPath  {
     [self hide];
-
-    [appLaunchDelegate launch:userBundleIds[indexPath.row]];
+    XIconCellView* cell = (XIconCellView*) [collectionView cellForItemAtIndexPath:indexPath];
+    [cell launchApp];
 }
 
 -(BOOL)gestureRecognizer:(UIGestureRecognizer*)gestureRecognizer shouldRecognizeSimultaneouslyWithGestureRecognizer:(UIGestureRecognizer*)otherGestureRecognizer {

@@ -7,14 +7,9 @@
 #import "XHomeView.h"
 #import "XDrawerView.h"
 
-#import "XAppLaunchDelegate.h"
 #import "XCoordinatorDelegate.h"
 
-@interface UIApplication (Undocumented)
-- (void) launchApplicationWithIdentifier: (NSString*)identifier suspended: (BOOL)suspended; 
-@end
-
-@interface SBHomeScreenViewController: UIViewController<UIGestureRecognizerDelegate, XAppLaunchDelegate, XCoordinatorDelegate>
+@interface SBHomeScreenViewController: UIViewController<UIGestureRecognizerDelegate, XCoordinatorDelegate>
 -(void)updateScreenSize;
 -(void)setupBackground;
 

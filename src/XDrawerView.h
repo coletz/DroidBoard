@@ -1,5 +1,4 @@
 #import "Constants.h"
-#import "XAppLaunchDelegate.h"
 #import "XIconCellView.h"
 
 @interface XDrawerView: UIView<UICollectionViewDataSource, UICollectionViewDelegateFlowLayout, UIGestureRecognizerDelegate>
@@ -9,5 +8,4 @@
 -(void)show;
 -(void)hide;
 
-@property (nonatomic, weak) id <XAppLaunchDelegate> appLaunchDelegate;
 @end

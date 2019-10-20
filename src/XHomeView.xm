@@ -2,7 +2,6 @@
 
 @implementation XHomeView
 
-@synthesize appLaunchDelegate;
 @synthesize coordinatorDelegate;
 
 NSDictionary* applications;
@@ -15,9 +14,9 @@ NSArray* preferredBundleIds = @[
     @"com.apple.mobilephone"
 ];
 
-- (void)setAppLaunchDelegate:(id <XAppLaunchDelegate>)delegate {
-    appLaunchDelegate = delegate;
-}
+NSMutableArray* appCells = [[NSMutableArray alloc]init];
+
+BOOL isEditingCellPosition = NO;
 
 - (void)setCoordinatorDelegate:(id <XCoordinatorDelegate>)delegate {
     coordinatorDelegate = delegate;
@@ -35,58 +34,103 @@ NSArray* preferredBundleIds = @[
 
 -(void)loadApps {
     NSArray *outIds;
-    NSPredicate *filter = [NSPredicate predicateWithFormat:@"isSystemApplication = FALSE"];
-    applications = [[ALApplicationList sharedApplicationList] applicationsFilteredUsingPredicate:filter onlyVisible:YES titleSortedIdentifiers:&outIds];
+    applications = [[ALApplicationList sharedApplicationList] applicationsFilteredUsingPredicate:nil onlyVisible:YES titleSortedIdentifiers:&outIds];
     bundleIds = outIds;
 }
 
 -(void)setupUserAppGrid {
-    UICollectionViewFlowLayout *layout=[[UICollectionViewFlowLayout alloc] init];
-    _appsCollectionView = [[UICollectionView alloc] initWithFrame:CGRectMake(0, 0, self.frame.size.width, self.frame.size.height) collectionViewLayout:layout];
-    [_appsCollectionView setContentInset:UIEdgeInsetsMake(32, 16, 0, 16)];
-    [_appsCollectionView setDataSource:self];
-    [_appsCollectionView setDelegate:self];
+    for(NSString* bId in preferredBundleIds) {
+        XIconCellView* cell = [[XIconCellView alloc]initWithFrame:CGRectMake(0, 0, ALApplicationIconSizeLarge, ALApplicationIconSizeLarge + 20)];
+        [cell setAppId:bId];
+        [self addSubview:cell];
+        [cell setUserInteractionEnabled:YES];
+        
+        // Long press = edit position
+        UILongPressGestureRecognizer* longPressGesture = [[UILongPressGestureRecognizer alloc] initWithTarget:self action:@selector(onCellLongPressed:)];
+        [cell addGestureRecognizer:longPressGesture];
+        
+        // Pan = move, only after long press
+        UIPanGestureRecognizer* panGesture = [[UIPanGestureRecognizer alloc] initWithTarget:self action:@selector(onCellDragged:)];
+        [cell addGestureRecognizer:panGesture];
 
-    [_appsCollectionView registerClass:[XIconCellView class] forCellWithReuseIdentifier:@"cellIdentifier"];
-    _appsCollectionView.backgroundColor = nil;
+        // Single touch = start app
+        UITapGestureRecognizer* tapGesture = [[UITapGestureRecognizer alloc] initWithTarget:self action:@selector(onCellTapped:)];
+        tapGesture.numberOfTapsRequired = 1;
+        [cell addGestureRecognizer:tapGesture];
 
-    [self addSubview:_appsCollectionView];
+        [appCells addObject:cell];
+    }
 }
 
 -(void)setupSwipeUp {
-    UISwipeGestureRecognizer *recognizer = [[UISwipeGestureRecognizer alloc] initWithTarget:self action:@selector(onSwipeUp:)];
+    UISwipeGestureRecognizer* recognizer = [[UISwipeGestureRecognizer alloc] initWithTarget:self action:@selector(onSwipeUp:)];
     recognizer.direction = UISwipeGestureRecognizerDirectionUp;
     recognizer.numberOfTouchesRequired = 1;
     recognizer.delegate = self;
     [self addGestureRecognizer:recognizer];
 }
 
+-(void)enableCellEdit {
+    isEditingCellPosition = YES;
+
+    UIButton* stopCellEditingBtn = [[UIButton alloc]initWithFrame:CGRectMake(self.bounds.size.width - 60, 24, 52, 24)];
+    stopCellEditingBtn.tag = 3348;
+
+    stopCellEditingBtn.clipsToBounds = YES;
+    stopCellEditingBtn.layer.cornerRadius = stopCellEditingBtn.bounds.size.height/2;
+
+    stopCellEditingBtn.titleLabel.font = [UIFont systemFontOfSize:12];
+    stopCellEditingBtn.backgroundColor = [UIColor colorWithRed:0.1 green:0.1 blue:0.1 alpha:0.8];
+    [stopCellEditingBtn setTitle:@"DONE" forState:UIControlStateNormal];
+    [stopCellEditingBtn setTitleColor:[UIColor colorWithRed:0.9 green:0.9 blue:0.9 alpha:1] forState:UIControlStateNormal];
+    
+    UITapGestureRecognizer* tapGesture = [[UITapGestureRecognizer alloc] initWithTarget:self action:@selector(onStopCellEditTapped:)];
+    tapGesture.numberOfTapsRequired = 1;
+    [stopCellEditingBtn addGestureRecognizer:tapGesture];
+    [self addSubview:stopCellEditingBtn];
+}
+
 -(void)onSwipeUp:(UIGestureRecognizer*)sender {
-    if([sender locationInView:self].y > self.bounds.size.height - 90) {
+    if(isEditingCellPosition) {
+        return;
+    }
+
+    if([sender locationInView:self].y > self.bounds.size.height - 80) {
         return;
     }
 
     [coordinatorDelegate showDrawer];
 }
 
-// Collection view
--(NSInteger)collectionView:(UICollectionView *)collectionView numberOfItemsInSection:(NSInteger)section {
-    return preferredBundleIds.count;
+-(void)onCellLongPressed:(UILongPressGestureRecognizer*)sender {
+    if ([sender state] == UIGestureRecognizerStateBegan) {
+        [self enableCellEdit];
+    }
 }
 
--(UICollectionViewCell*)collectionView:(UICollectionView *)collectionView cellForItemAtIndexPath:(NSIndexPath*)indexPath {
-    XIconCellView* cell = (XIconCellView*) [collectionView dequeueReusableCellWithReuseIdentifier:@"cellIdentifier" forIndexPath:indexPath];
-    [[cell appIcon] setImage:[[ALApplicationList sharedApplicationList] iconOfSize:ALApplicationIconSizeLarge forDisplayIdentifier:preferredBundleIds[indexPath.row]]];
-    [[cell appName] setText:applications[preferredBundleIds[indexPath.row]]];
-    return cell;
+-(void)onCellDragged:(UIPanGestureRecognizer*)sender {
+    XIconCellView* cell = (XIconCellView*)sender.view;
+    if(isEditingCellPosition){
+        CGPoint translation = [sender translationInView:self];
+        [self bringSubviewToFront:cell];
+
+        cell.center = CGPointMake(cell.center.x + translation.x, cell.center.y + translation.y);
+        [sender setTranslation:CGPointZero inView: self];
+    }
 }
 
--(CGSize)collectionView:(UICollectionView*)collectionView layout:(UICollectionViewLayout*)collectionViewLayout sizeForItemAtIndexPath:(NSIndexPath*)indexPath {
-    return CGSizeMake(icon.width, icon.height + 20);
+-(void)onCellTapped:(UITapGestureRecognizer*)sender {
+    XIconCellView* cell = (XIconCellView*)sender.view;
+    if(!isEditingCellPosition) {
+        [cell launchApp];
+    }
 }
 
--(void)collectionView:(UICollectionView*)collectionView didSelectItemAtIndexPath:(NSIndexPath*)indexPath  {
-    [appLaunchDelegate launch:preferredBundleIds[indexPath.row]];
+-(void)onStopCellEditTapped:(UITapGestureRecognizer*)sender {
+    isEditingCellPosition = NO;
+
+    UIButton* stopCellEditingBtn = (UIButton*)[self viewWithTag:3348];
+    [stopCellEditingBtn removeFromSuperview];
 }
 
 -(BOOL)gestureRecognizer:(UIGestureRecognizer*)gestureRecognizer shouldRecognizeSimultaneouslyWithGestureRecognizer:(UIGestureRecognizer*)otherGestureRecognizer {
