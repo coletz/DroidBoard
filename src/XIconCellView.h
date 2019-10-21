@@ -5,6 +5,9 @@
 @property (strong, nonatomic) UIImageView* appIcon;
 
 @property (nonatomic) NSString* bundleId;
+@property (nonatomic) int posX;
+@property (nonatomic) int posY;
+
 
 -(XIconCellView*)initWithFrame:(CGRect)frame;
 -(void)setAppId:(NSString*)appId;
