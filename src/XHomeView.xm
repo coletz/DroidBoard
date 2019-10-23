@@ -51,9 +51,11 @@ int cellHeight = 0;
     for(NSString* bId in preferredBundleIds) {
         XIconCellView* cell = [[XIconCellView alloc]initWithFrame:CGRectMake(0, 0, ALApplicationIconSizeLarge, ALApplicationIconSizeLarge + 20)];
         
-        cell.posX = 0;//[prefs integerForKey:[NSString stringWithFormat:@"pos_x_%@", bId]];
-        cell.posY = 0;//[prefs integerForKey:[NSString stringWithFormat:@"pos_y_%@", bId]];
+        cell.posX = [prefs integerForKey:[NSString stringWithFormat:@"pos_x_%@", bId]];
+        cell.posY = [prefs integerForKey:[NSString stringWithFormat:@"pos_y_%@", bId]];
         
+        cell.center = CGPointMake(cell.posX * cellWidth, cell.posY * cellHeight);
+ 
         [cell setAppId:bId];
         [self addSubview:cell];
         [cell setUserInteractionEnabled:YES];
@@ -181,18 +183,18 @@ int cellHeight = 0;
     
     int horizontalReminder = appCell.center.x - (appCell.posX * cellWidth);
     double horizontalPad = 0;
-    if(horizontalReminder < cellWidth) {
+    if(horizontalReminder < cellWidth/4) {
         horizontalPad = -0.5;
-    } else if(horizontalReminder > cellWidth) {
+    } else if(horizontalReminder > cellWidth/4) {
         horizontalPad = 0.5;
     }
     int adjustedHorizontalPosition = (appCell.posX + horizontalPad) * cellWidth;
 
     int verticalReminder = appCell.center.y - (appCell.posY * cellHeight);
     double verticalPad = 0;
-    if(verticalReminder < cellHeight) {
+    if(verticalReminder < cellHeight/4) {
         verticalPad = -0.5;
-    } else if(verticalReminder > cellHeight) {
+    } else if(verticalReminder > cellHeight/4) {
         verticalPad = 0.5;
     }
     int adjustedVerticalPosition = (appCell.posY + verticalPad) * cellHeight;
