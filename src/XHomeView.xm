@@ -15,7 +15,7 @@ NSUserDefaults *prefs = [NSUserDefaults standardUserDefaults];
 
 BOOL isEditingCellPosition = NO;
 int horizontalCellNumber = 4;
-int verticalCellNumber = 5;
+int verticalCellNumber = 6;
 int cellWidth = 0;
 int cellHeight = 0;
 
@@ -112,6 +112,7 @@ int cellHeight = 0;
 }
 
 -(void)onSwipeUp:(UIGestureRecognizer*)sender {
+    // Swipe is disabled while editing
     if(isEditingCellPosition) {
         return;
     }
@@ -126,7 +127,19 @@ int cellHeight = 0;
 
 -(void)onCellLongPressed:(UILongPressGestureRecognizer*)sender {
     if ([sender state] == UIGestureRecognizerStateBegan) {
-        [self enableCellEdit];
+        if(!isEditingCellPosition) {
+            [self enableCellEdit];
+        } else {
+            // Remove cell from home
+            XIconCellView* cell = (XIconCellView*)sender.view;
+            NSMutableArray* apps = [NSMutableArray arrayWithArray:[[NSUserDefaults standardUserDefaults] objectForKey:@"homeAppIds"]];
+            [apps removeObject:cell.bundleId];
+            [prefs setObject:apps forKey:@"homeAppIds"];
+            // Reset position
+            [prefs setInteger:0 forKey:[NSString stringWithFormat:@"pos_x_%@", cell.bundleId]];
+            [prefs setInteger:0 forKey:[NSString stringWithFormat:@"pos_y_%@", cell.bundleId]];
+            [coordinatorDelegate reloadHomeApps];
+        }
     }
 }
 
