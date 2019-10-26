@@ -15,6 +15,9 @@ XDrawerView* xDrawerView;
 -(void)viewDidAppear:(BOOL)arg1 {
     %orig(arg1);
     [self updateScreenSize];
+
+    //NSString *appDomain = [[NSBundle mainBundle] bundleIdentifier];
+    //[[NSUserDefaults standardUserDefaults] removePersistentDomainForName:appDomain];
     
     xRootView = [[UIView alloc]initWithFrame:CGRectMake(0, 0, screen.width, screen.height)];
     [self setupBackground];
@@ -25,6 +28,7 @@ XDrawerView* xDrawerView;
     [xRootView addSubview:xHomeView];
 
     xDrawerView = [[XDrawerView alloc]initWithFrame:CGRectMake(0, screen.height, screen.width, screen.height - statusBarHeight)];
+    [xDrawerView setCoordinatorDelegate:self];
     [xRootView addSubview:xDrawerView];
 }
 
@@ -41,7 +45,12 @@ XDrawerView* xDrawerView;
 
 %new
 -(void)hideDrawer {
-    [xDrawerView hide];
+    [xDrawerView hideProgrammatically];
+}
+
+%new
+-(void)reloadHomeApps {
+    [xHomeView loadApps];
 }
 
 %new
@@ -50,8 +59,6 @@ XDrawerView* xDrawerView;
 
     gradient.frame = xRootView.bounds;
     gradient.colors = @[
-        //(id)[UIColor colorWithRed:0 green:0.5 blue:1 alpha:1].CGColor, 
-        //(id)[UIColor colorWithRed:0.17 green:0.85 blue:0.69 alpha:1].CGColor
         (id)[UIColor colorWithRed:18.0/255.0 green:66.0/255.0 blue:71.0/255.0 alpha:1].CGColor,
         (id)[UIColor colorWithRed:63.0/255.0 green:146.0/255.0 blue:126.0/255.0 alpha:1].CGColor,
         (id)[UIColor colorWithRed:199.0/255.0 green:200.0/255.0 blue:208.0/255.0 alpha:1].CGColor,

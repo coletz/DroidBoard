@@ -7,12 +7,7 @@
 NSDictionary* applications;
 NSArray* bundleIds;
 
-NSArray* preferredBundleIds = @[
-    @"com.atebits.Tweetie2",
-    @"com.google.chrome.ios",
-    @"ph.telegra.Telegraph",
-    @"com.apple.mobilephone"
-];
+NSSet* homeAppIds;
 
 NSMutableArray* appCells = [[NSMutableArray alloc]init];
 
@@ -35,7 +30,6 @@ int cellHeight = 0;
     cellHeight = self.bounds.size.height / verticalCellNumber;
 
     [self loadApps];
-    [self setupUserAppGrid];
     [self setupSwipeUp];
 
     return self;
@@ -45,16 +39,26 @@ int cellHeight = 0;
     NSArray *outIds;
     applications = [[ALApplicationList sharedApplicationList] applicationsFilteredUsingPredicate:nil onlyVisible:YES titleSortedIdentifiers:&outIds];
     bundleIds = outIds;
+
+    homeAppIds = [prefs objectForKey:@"homeAppIds"];
+
+    [self setupUserAppGrid];
 }
 
 -(void)setupUserAppGrid {
-    for(NSString* bId in preferredBundleIds) {
+    for (UIView *v in [self subviews]) {
+        if ([v isKindOfClass:[XIconCellView class]]) {
+            [v removeFromSuperview];
+        }
+    }
+
+    for(NSString* bId in homeAppIds) {
         XIconCellView* cell = [[XIconCellView alloc]initWithFrame:CGRectMake(0, 0, ALApplicationIconSizeLarge, ALApplicationIconSizeLarge + 20)];
         
         cell.posX = [prefs integerForKey:[NSString stringWithFormat:@"pos_x_%@", bId]];
         cell.posY = [prefs integerForKey:[NSString stringWithFormat:@"pos_y_%@", bId]];
         
-        cell.center = CGPointMake(cell.posX * cellWidth, cell.posY * cellHeight);
+        [self setPixelPositionFromGridPosition:cell];
  
         [cell setAppId:bId];
         [self addSubview:cell];
@@ -74,8 +78,6 @@ int cellHeight = 0;
         [cell addGestureRecognizer:tapGesture];
 
         [appCells addObject:cell];
-
-        [self setCellInPlace:cell];
     }
 }
 
@@ -88,23 +90,25 @@ int cellHeight = 0;
 }
 
 -(void)enableCellEdit {
-    isEditingCellPosition = YES;
+    if(!isEditingCellPosition){
+        isEditingCellPosition = YES;
 
-    UIButton* stopCellEditingBtn = [[UIButton alloc]initWithFrame:CGRectMake(self.bounds.size.width - 60, 24, 52, 24)];
-    stopCellEditingBtn.tag = 3348;
+        UIButton* stopCellEditingBtn = [[UIButton alloc]initWithFrame:CGRectMake(self.bounds.size.width - 60, 24, 52, 24)];
+        stopCellEditingBtn.tag = 3348;
 
-    stopCellEditingBtn.clipsToBounds = YES;
-    stopCellEditingBtn.layer.cornerRadius = stopCellEditingBtn.bounds.size.height/2;
+        stopCellEditingBtn.clipsToBounds = YES;
+        stopCellEditingBtn.layer.cornerRadius = stopCellEditingBtn.bounds.size.height/2;
 
-    stopCellEditingBtn.titleLabel.font = [UIFont systemFontOfSize:12];
-    stopCellEditingBtn.backgroundColor = [UIColor colorWithRed:0.1 green:0.1 blue:0.1 alpha:0.8];
-    [stopCellEditingBtn setTitle:@"DONE" forState:UIControlStateNormal];
-    [stopCellEditingBtn setTitleColor:[UIColor colorWithRed:0.9 green:0.9 blue:0.9 alpha:1] forState:UIControlStateNormal];
-    
-    UITapGestureRecognizer* tapGesture = [[UITapGestureRecognizer alloc] initWithTarget:self action:@selector(onStopCellEditTapped:)];
-    tapGesture.numberOfTapsRequired = 1;
-    [stopCellEditingBtn addGestureRecognizer:tapGesture];
-    [self addSubview:stopCellEditingBtn];
+        stopCellEditingBtn.titleLabel.font = [UIFont systemFontOfSize:12];
+        stopCellEditingBtn.backgroundColor = [UIColor colorWithRed:0.1 green:0.1 blue:0.1 alpha:0.8];
+        [stopCellEditingBtn setTitle:@"DONE" forState:UIControlStateNormal];
+        [stopCellEditingBtn setTitleColor:[UIColor colorWithRed:0.9 green:0.9 blue:0.9 alpha:1] forState:UIControlStateNormal];
+        
+        UITapGestureRecognizer* tapGesture = [[UITapGestureRecognizer alloc] initWithTarget:self action:@selector(onStopCellEditTapped:)];
+        tapGesture.numberOfTapsRequired = 1;
+        [stopCellEditingBtn addGestureRecognizer:tapGesture];
+        [self addSubview:stopCellEditingBtn]; 
+    }
 }
 
 -(void)onSwipeUp:(UIGestureRecognizer*)sender {
@@ -112,6 +116,7 @@ int cellHeight = 0;
         return;
     }
 
+    // Swipe up must be from at least 80 px above bottom edge
     if([sender locationInView:self].y > self.bounds.size.height - 80) {
         return;
     }
@@ -135,8 +140,14 @@ int cellHeight = 0;
         [sender setTranslation:CGPointZero inView: self];
 
         if ([sender state] == UIGestureRecognizerStateEnded) {
-            [self adjustCellPosition:cell];
-            [self setCellInPlace:cell];
+            [self calculateGridPosition:cell];
+
+            [prefs setInteger:cell.posX forKey:[NSString stringWithFormat:@"pos_x_%@", cell.bundleId]];
+            [prefs setInteger:cell.posY forKey:[NSString stringWithFormat:@"pos_y_%@", cell.bundleId]];
+
+            // Bring done button to top
+            UIButton* stopCellEditingBtn = (UIButton*)[self viewWithTag:3348];
+            [self bringSubviewToFront:stopCellEditingBtn];
         }
     }
 }
@@ -155,51 +166,39 @@ int cellHeight = 0;
     [stopCellEditingBtn removeFromSuperview];
 }
 
--(void)adjustCellPosition:(XIconCellView*) appCell {
-    int horizontalCellIndex = ((int)appCell.center.x)/cellWidth;
-    if(horizontalCellIndex == 0) {
-        horizontalCellIndex = 1;
-    }
-    if(horizontalCellIndex == horizontalCellNumber) {
-        horizontalCellIndex = horizontalCellNumber - 1;
-    }
-    appCell.posX = horizontalCellIndex;
-    [prefs setInteger:appCell.posX forKey:[NSString stringWithFormat:@"pos_x_%@", appCell.bundleId]];
+-(void)calculateGridPosition:(XIconCellView*)cell {
+    int validX = cell.center.x;
+    int validY = cell.center.y;
 
-    int verticalCellIndex = ((int)appCell.center.y)/cellHeight;
-    if(verticalCellIndex == 0) {
-        verticalCellIndex = 1;
-    }
-    if(verticalCellIndex == verticalCellNumber) {
-        verticalCellIndex = verticalCellNumber - 1;
-    }
-    appCell.posY = verticalCellIndex;
-    [prefs setInteger:appCell.posY forKey:[NSString stringWithFormat:@"pos_y_%@", appCell.bundleId]];
+    int rootWidth = self.bounds.size.width;
+    int rootHeight = self.bounds.size.height;
 
-    [prefs synchronize];
+    if(validX < 0) {
+        validX = 0;
+    } else if(validX > rootWidth){
+        validX = rootWidth;
+    }
+
+    if(validY < 0) {
+        validY = 0;
+    } else if(validY > rootHeight){
+        validY = rootHeight;
+    }
+
+    int remX = validX % cellWidth;
+    int remY = validY % cellHeight;
+
+    cell.posX = (validX - remX)/cellWidth;
+    cell.posY = (validY - remY)/cellHeight;
+
+    [self setPixelPositionFromGridPosition:cell];
 }
 
--(void)setCellInPlace:(XIconCellView*)appCell {
-    
-    int horizontalReminder = appCell.center.x - (appCell.posX * cellWidth);
-    double horizontalPad = 0;
-    if(horizontalReminder < cellWidth/4) {
-        horizontalPad = -0.5;
-    } else if(horizontalReminder > cellWidth/4) {
-        horizontalPad = 0.5;
-    }
-    int adjustedHorizontalPosition = (appCell.posX + horizontalPad) * cellWidth;
+-(void)setPixelPositionFromGridPosition:(XIconCellView*)cell {
+    int pixelPosX = cell.posX * cellWidth + cellWidth/2;
+    int pixelPosY = cell.posY * cellHeight + cellHeight/2;
 
-    int verticalReminder = appCell.center.y - (appCell.posY * cellHeight);
-    double verticalPad = 0;
-    if(verticalReminder < cellHeight/4) {
-        verticalPad = -0.5;
-    } else if(verticalReminder > cellHeight/4) {
-        verticalPad = 0.5;
-    }
-    int adjustedVerticalPosition = (appCell.posY + verticalPad) * cellHeight;
-
-    appCell.center = CGPointMake(adjustedHorizontalPosition, adjustedVerticalPosition); 
+    cell.center = CGPointMake(pixelPosX, pixelPosY);
 }
 
 -(BOOL)gestureRecognizer:(UIGestureRecognizer*)gestureRecognizer shouldRecognizeSimultaneouslyWithGestureRecognizer:(UIGestureRecognizer*)otherGestureRecognizer {

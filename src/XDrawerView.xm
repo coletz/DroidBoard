@@ -2,8 +2,14 @@
 
 @implementation XDrawerView
 
+@synthesize coordinatorDelegate;
+
 NSArray *userBundleIds;
 NSArray *systemBundleIds;
+
+- (void)setCoordinatorDelegate:(id <XCoordinatorDelegate>)delegate {
+    coordinatorDelegate = delegate;
+}
 
 -(XDrawerView*)initWithFrame:(CGRect)frame {
     self = [super initWithFrame:frame];
@@ -33,6 +39,11 @@ NSArray *systemBundleIds;
 
     [_userAppsCollectionView registerClass:[XIconCellView class] forCellWithReuseIdentifier:@"cellIdentifier"];
     _userAppsCollectionView.backgroundColor = nil;
+
+    UILongPressGestureRecognizer *recognizer = [[UILongPressGestureRecognizer alloc]initWithTarget:self action:@selector(onCellLongPressed:)];
+    recognizer.delegate = self;
+    recognizer.delaysTouchesBegan = YES;
+    [_userAppsCollectionView addGestureRecognizer:recognizer];
 
     [self addSubview:_userAppsCollectionView];
 }
@@ -109,6 +120,29 @@ NSArray *systemBundleIds;
     [self hideProgrammatically];
     XIconCellView* cell = (XIconCellView*) [collectionView cellForItemAtIndexPath:indexPath];
     [cell launchApp];
+}
+
+-(void)onCellLongPressed:(UILongPressGestureRecognizer *)gestureRecognizer {
+    CGPoint touchedPoint = [gestureRecognizer locationInView:_userAppsCollectionView];
+    
+    NSIndexPath *indexPath = [_userAppsCollectionView indexPathForItemAtPoint:touchedPoint];
+
+    if (indexPath != nil){
+        XIconCellView* cell = (XIconCellView*)[_userAppsCollectionView cellForItemAtIndexPath:indexPath];
+        if(cell != nil) {
+            NSUserDefaults* prefs = [NSUserDefaults standardUserDefaults];
+            // Get saved apps as array, then put them in a set
+            NSMutableSet* appsSet = [NSMutableSet setWithArray:[[NSUserDefaults standardUserDefaults] objectForKey:@"homeAppIds"]];
+            // Add new app to the set
+            [appsSet addObject:cell.bundleId];
+            // Revert set to array
+            NSArray *apps = [appsSet allObjects];
+            // Save the array
+            [prefs setObject:apps forKey:@"homeAppIds"];
+            [coordinatorDelegate hideDrawer];
+            [coordinatorDelegate reloadHomeApps];
+        }
+    }
 }
 
 -(BOOL)gestureRecognizer:(UIGestureRecognizer*)gestureRecognizer shouldRecognizeSimultaneouslyWithGestureRecognizer:(UIGestureRecognizer*)otherGestureRecognizer {
