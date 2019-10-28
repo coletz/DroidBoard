@@ -15,4 +15,7 @@
 
 -(void)setupHomeDoubleTap;
 -(void)onHomeDoubleTap:(UIGestureRecognizer*)sender;
+
+-(void)onUnassignedKeyPressed:(UIKeyCommand*)sender;
+-(void)onAssignedKeyPressed:(UIKeyCommand*)sender;
 @end

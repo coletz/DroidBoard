@@ -30,7 +30,34 @@ XDrawerView* xDrawerView;
     xDrawerView = [[XDrawerView alloc]initWithFrame:CGRectMake(0, screen.height, screen.width, screen.height - statusBarHeight)];
     [xDrawerView setCoordinatorDelegate:self];
     [xRootView addSubview:xDrawerView];
+
+
+    for (i = 65; i <= 90; i++){
+        NSString *shortcutKey = [NSString stringWithFormat:@"%c", i];
+        
+        UIKeyCommand* cmd = [UIKeyCommand
+                keyCommandWithInput:shortcutKey
+                modifierFlags:0
+                action:@selector(onUnassignedKeyPressed:)
+                discoverabilityTitle:shortcutKey
+        ];
+        [self addKeyCommand:cmd];
+    }
 }
+
+%new
+-(void)onUnassignedKeyPressed:(UIKeyCommand*)sender {
+    //TODO
+}
+
+%new
+-(void)onAssignedKeyPressed:(UIKeyCommand*)sender {
+    NSString* shortcutKey = sender.input;
+    XIconCellView* cell = [[XIconCellView alloc]initWithFrame:CGRectMake(0, 0, 1, 1)];
+    [cell setAppId:@"ph.telegra.Telegraph"];
+    [cell launchApp];
+}
+
 
 %new
 -(void)updateScreenSize {
